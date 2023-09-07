@@ -7,5 +7,15 @@
   "bootcamp": {
     "createdAt": "2023-08-22T22:00:38.678Z",
     "commit": "24f5a51ee0a15f345b59fcd2ef44c3616abdfce5"
+  },
+  "devDependencies": {
+    "jest": "^29.6.4"
+  },
+  "scripts": {
+    "test": "jest"
+  },
+  "dependencies": {
+    "markdown-it": "^13.0.1",
+    "marked": "^8.0.0"
   }
 }
