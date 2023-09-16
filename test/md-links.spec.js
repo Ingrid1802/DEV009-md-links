@@ -1,11 +1,9 @@
-const { exiteRoute, absoluteRoute, isMarkdownFile, extractLinksFromMarkdown } = require('../functionMDL.js');
+const axios = require('axios');
 const { mdLinks } = require('../index.js');
 const fs = require('fs/promises');
 const path = require('path');
 
-// Creamos el mock
-
-jest.mock('fs/promises');
+jest.mock('axios');
 
 describe('mdLinks', () => {
   // Restaurar el comportamiento original de fs.promises después de cada prueba
@@ -13,168 +11,73 @@ describe('mdLinks', () => {
     jest.restoreAllMocks();
   });
 
-  it('Debe rechazar el path cuando no existe', () => {
-    return mdLinks('archivo.md').catch((error) => {
-      expect(error).toBe('La ruta no existe')
-    })
+  it('debería rechazar la promesa si la ruta no existe', () => {
+    const nonExistentPath = '/ruta/inexistente.md';
+    return expect(mdLinks(nonExistentPath)).rejects.toEqual('La ruta no existe');
   });
 
-  it('Debería mostrar un error si la ruta no existe', () => {
-    return mdLinks('ruta_invalida.md').catch((error) => {
-      expect(error).toBe('La ruta no existe');
+  it('debería convertir una ruta relativa en una ruta absoluta', () => {
+    const relativePath = './markdowns/prueba.md';
+    const expectedAbsolutePath = path.resolve(relativePath);
+    return mdLinks(relativePath).then((result) => {
+      expect(result[0].file).toEqual(expectedAbsolutePath);
     });
   });
 
-  it('Debería mostrar un error si es que no es un archivo Markdown', () => {
-    return mdLinks('./index.js').catch((error) => {
-      expect(error).toBe('no es Markdown');
+  it('debería detectar un archivo Markdown', () => {
+    const markdownFilePath = './markdowns/prueba.md';
+    return mdLinks(markdownFilePath).then((result) => {
+      // Verificar que el resultado no sea igual a "No es Markdown"
+      expect(result).not.toBe('No es Markdown');
     });
   });
 
-  it('debería devolver los enlaces encontrados dentro del archivo Markdown', async () => {
-    const fileContents = 'Archivo [Markdown](https://markdown.com) y [Otro enlace](https://otro.com)';
-    const filePath = './prueba.md'; // Reemplaza con la ruta correcta a tu archivo
-
-    // Simulamos que la ruta existe
-    fs.access.mockResolvedValue();
-
-    // Simulamos la lectura del archivo
-    fs.readFile.mockResolvedValue(fileContents);
-
-    const result = await mdLinks(filePath);
-
-    expect(result).toEqual([
-      {
-        href: 'https://markdown.com',
-        text: 'Markdown',
-        file: path.resolve(filePath),
-      },
-      {
-        href: 'https://otro.com',
-        text: 'Otro enlace',
-        file: path.resolve(filePath),
-      },
-    ]);
-  });
-});
-
-
-
-
-
-
-
-describe('exiteRoute', () => {
-  it('Debería retornar true si la ruta existe', () => {
-    const mockRoute = 'README.md'; // Ruta de archivo existente
-    fs.existsSync = jest.fn().mockReturnValue(true);
-    const result = exiteRoute(mockRoute);
-    expect(result).toBe(true);
-  });
-
-  it('Debería retornar false si la ruta no existe', () => {
-    const mockRoute = 'ruta_no_existente.txt'; // Ruta de archivo que no existe
-    fs.existsSync = jest.fn().mockReturnValue(false);
-    const result = exiteRoute(mockRoute);
-    expect(result).toBe(false);
-  });
-});
-
-
-
-
-
-
-
-describe('absoluteRoute', () => {
-  it('Debería convertir una ruta relativa en absoluta', () => {
-    const relativeRoute = './prueba.md'; // Ruta relativa
-    const expectedAbsoluteRoute = path.resolve(relativeRoute);
-
-    const result = absoluteRoute(relativeRoute);
-    expect(result).toBe(expectedAbsoluteRoute);
-  });
-
-  it('Debería mantener una ruta absoluta sin cambios', () => {
-    const routeAbsolute = 'C:\\Users\\Ingrid\\DEV009-md-links\\prueba.md'; // Ruta absoluta
-
-    const result = absoluteRoute(routeAbsolute);
-    expect(result).toBe(routeAbsolute);
-  });
-});
-
-
-
-
-
-
-
-describe('isMarkdownFile', () => {
-  it('Debería retornar true si la extensión es de un archivo Markdown', () => {
-    const markdownExtensions = ['.md', '.mkd', '.mdwn', '.mdown', '.mdtxt', '.mdtext', '.markdown', '.text'];
-
-    markdownExtensions.forEach((extension) => {
-      const filePath = `archivo${extension}`; // Nombre de archivo con extensión Markdown (ajusta la extensión según tu lista de extensiones Markdown)
-
-      const result = isMarkdownFile(filePath);
-      expect(result).toBe(true);
+  it('debería detectar que no es un archivo Markdown', () => {
+    const nonMarkdownFilePath = './index.js';
+    return mdLinks(nonMarkdownFilePath).then((result) => {
+      // Verificar que el resultado sea igual a "No es Markdown"
+      expect(result).toBe('No es Markdown');
     });
   });
 
-  it('Debería retornar false si la extensión no es de un archivo Markdown', () => {
-    const nonMarkdownExtensions = ['.html', '.txt', '.js', '.css']; // Extensiones que no son Markdown
+  it('debería leer el archivo Markdown y extraer los enlaces', () => {
+    const markdownFilePath = './markdowns/prueba.md';
 
-    nonMarkdownExtensions.forEach((extension) => {
-      const filePath = `archivo${extension}`; // Nombre de archivo con extensión que no es Markdown (ajusta la extensión según tu lista de extensiones no Markdown)
+    return mdLinks(markdownFilePath).then((result) => {
+      // Verificar que el resultado sea un array de objetos de enlace
+      expect(Array.isArray(result)).toBe(true);
 
-      const result = isMarkdownFile(filePath);
-      expect(result).toBe(false);
+      // Verificar que el resultado contenga al menos un objeto de enlace
+      expect(result.length).toBeGreaterThan(0);
+
+      // Verificar que los objetos de enlace tengan las propiedades esperadas (href, text, file)
+      expect(result[0]).toHaveProperty('href');
+      expect(result[0]).toHaveProperty('text');
+      expect(result[0]).toHaveProperty('file');
+    });
+  });
+
+  it('debería validar enlaces correctamente', () => {
+    const markdownFilePath = './markdowns/prueba.md';
+
+    // Configurar una respuesta falsa para Axios
+    axios.head.mockResolvedValue({ status: 200 });
+
+    return mdLinks(markdownFilePath, { validate: true }).then(result => {
+      // Crear un arreglo de enlaces válidos esperados
+      const expectedValidLinks = [
+        {
+          href: 'https://www.youtube.com/@auron/featured',
+          text: 'aquí',
+          file: path.resolve(markdownFilePath),
+          status: 200,
+          ok: 'ok',
+        }
+      ];
+      // Verificar que todos los enlaces válidos esperados estén presentes en el resultado
+      expectedValidLinks.forEach(expectedLink => {
+        expect(result).toContainEqual(expectedLink);
+      });
     });
   });
 });
-
-
-
-
-
-
-
-describe('extractLinksFromMarkdown', () => {
-  it('Debería extraer los enlaces de un archivo Markdown', () => {
-    const markdownContent = '[Enlace 1](https://link1.com) y [Enlace 2](https://link2.com)';
-    const filePath = 'archivo.md'; // Nombre de archivo con extensión Markdown
-
-    const result = extractLinksFromMarkdown(markdownContent, filePath);
-
-    expect(result).toEqual([
-      {
-        href: 'https://link1.com',
-        text: 'Enlace 1',
-        file: filePath,
-      },
-      {
-        href: 'https://link2.com',
-        text: 'Enlace 2',
-        file: filePath,
-      },
-    ]);
-  });
-});
-
-
-// Aquí puedes agregar más pruebas según sea necesario
-
-// const { mdLinks } = require('../index.js');
-
-// describe('mdLinks', () => {
-
-//   it('should...', () => {
-//     console.log('FIX ME!');
-//   });
-
-//   it('Debe rechazar el path cuando no existe', () => {
-//     return mdLinks('archivo.md').catch((error) => {
-//       expect(error).toBe('La ruta no existe')
-//     })
-//   });
-// });

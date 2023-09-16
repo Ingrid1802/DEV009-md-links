@@ -1,11 +1,8 @@
 const marked = require('marked');
 const fs = require('fs');
 const path = require("path");
+const axios = require('axios');
 
-// const markdownIt = require('markdown-it')();
-
-// Identifica si la ruta existe.
-//(ROUTE = RUTA)
 function exiteRoute(route) {
   if (fs.existsSync(route)) {
     return true;
@@ -14,7 +11,6 @@ function exiteRoute(route) {
   }
 }
 
-// evaluación de ruta
 function absoluteRoute(route) {
   if (!path.isAbsolute(route)) {
     return path.resolve(route);
@@ -23,40 +19,53 @@ function absoluteRoute(route) {
   }
 }
 
-//Asegurarnos que es un archivo Markdown
 function isMarkdownFile(route) {
-  // Lista de extensiones Markdown permitidas
   const markdownExtensions = ['.md', '.mkd', '.mdwn', '.mdown', '.mdtxt', '.mdtext', '.markdown', '.text'];
-
-  // Obtiene la extensión del archivo usando la función extname del módulo path
   const fileExtension = path.extname(route);
-
-  // Comprueba si la extensión del archivo está en la lista de extensiones Markdown
   return markdownExtensions.includes(fileExtension);
 }
 
-function extractLinksFromMarkdown(markdownContent, filePath) {
+function validateLink(link) {
+  return axios.head(link.href)
+    .then(response => {
+      link.status = response.status;
+      link.ok = response.status >= 200 && response.status < 400 ? 'ok' : 'fail';
+      return link;
+    })
+    .catch(error => {
+      link.status = 404;
+      link.ok = 'fail';
+      return link;
+    });
+}
+
+function extractLinksFromMarkdown(markdownContent, filePath, validate) {
   const links = [];
 
-  // Configurar el parser de marked para capturar los enlaces
   const renderer = new marked.Renderer();
   renderer.link = function (href, title, text) {
-    links.push({
+    const link = {
       href: href,
-      text: text || title, // Utiliza text o title como texto del enlace
+      text: text || title,
       file: filePath,
-    });
+    };
+
+    if (validate) {
+      links.push(validateLink(link));
+    } else {
+      links.push(link);
+    }
   };
 
-  // Parsear el contenido Markdown utilizando parse
   marked.parse(markdownContent, { renderer: renderer });
 
-  return links;
+  return Promise.all(links);
 }
 
 module.exports = {
   exiteRoute,
   absoluteRoute,
   isMarkdownFile,
-  extractLinksFromMarkdown
+  extractLinksFromMarkdown,
+  validateLink
 };
