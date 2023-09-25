@@ -1,3 +1,4 @@
+const marked = require('marked');
 const axios = require('axios');
 const { mdLinks } = require('../index.js');
 const fs = require('fs/promises');
@@ -6,78 +7,66 @@ const path = require('path');
 jest.mock('axios');
 
 describe('mdLinks', () => {
-  // Restaurar el comportamiento original de fs.promises después de cada prueba
-  afterEach(() => {
-    jest.restoreAllMocks();
-  });
 
   it('debería rechazar la promesa si la ruta no existe', () => {
     const nonExistentPath = '/ruta/inexistente.md';
-    return expect(mdLinks(nonExistentPath)).rejects.toEqual('La ruta no existe');
+    return expect(mdLinks(nonExistentPath)).rejects.toEqual('La ruta o directorio no existe');
   });
 
-  it('debería convertir una ruta relativa en una ruta absoluta', () => {
-    const relativePath = './markdowns/prueba.md';
-    const expectedAbsolutePath = path.resolve(relativePath);
-    return mdLinks(relativePath).then((result) => {
-      expect(result[0].file).toEqual(expectedAbsolutePath);
+  it('Debería devolver una lista de enlaces', () => {
+    return mdLinks('./markdowns/markdownd2', false).then(links => {
+      expect(links).toHaveLength(3);
     });
   });
 
-  it('debería detectar un archivo Markdown', () => {
-    const markdownFilePath = './markdowns/prueba.md';
-    return mdLinks(markdownFilePath).then((result) => {
-      // Verificar que el resultado no sea igual a "No es Markdown"
-      expect(result).not.toBe('No es Markdown');
+  it('debe retornar una lista vacía si no hay enlaces', async () => {
+    const directorioDePrueba = './markdowns3';
+    const validate = false;
+
+    const links = await mdLinks(directorioDePrueba, validate);
+
+    // Verifica que links sea un array vacío
+    expect(Array.isArray(links)).toBeTruthy();
+    expect(links.length).toBe(0);
+  });
+
+  it('debería procesar un directorio y extraer enlaces de archivos Markdown', () => {
+    // Define una ruta válida a un archivo Markdown de prueba
+    const filePath = './markdowns';
+
+    // Llama a la función mdLinks con la ruta del archivo y validate como false
+    return mdLinks(filePath, false).then(links => {
+      // Verifica que links sea un array de objetos con la estructura adecuada
+      expect(Array.isArray(links)).toBeTruthy();
+      expect(links).toHaveLength(8);
     });
   });
 
-  it('debería detectar que no es un archivo Markdown', () => {
-    const nonMarkdownFilePath = './index.js';
-    return mdLinks(nonMarkdownFilePath).then((result) => {
-      // Verificar que el resultado sea igual a "No es Markdown"
-      expect(result).toBe('No es Markdown');
-    });
-  });
-
-  it('debería leer el archivo Markdown y extraer los enlaces', () => {
-    const markdownFilePath = './markdowns/prueba.md';
-
-    return mdLinks(markdownFilePath).then((result) => {
-      // Verificar que el resultado sea un array de objetos de enlace
-      expect(Array.isArray(result)).toBe(true);
-
-      // Verificar que el resultado contenga al menos un objeto de enlace
-      expect(result.length).toBeGreaterThan(0);
-
-      // Verificar que los objetos de enlace tengan las propiedades esperadas (href, text, file)
-      expect(result[0]).toHaveProperty('href');
-      expect(result[0]).toHaveProperty('text');
-      expect(result[0]).toHaveProperty('file');
-    });
-  });
-
-  it('debería validar enlaces correctamente', () => {
-    const markdownFilePath = './markdowns/prueba.md';
-
-    // Configurar una respuesta falsa para Axios
+  it('debería devolver estado "ok" para enlaces válidos', () => {
+    // Simula una respuesta exitosa para un enlace válido
     axios.head.mockResolvedValue({ status: 200 });
 
-    return mdLinks(markdownFilePath, { validate: true }).then(result => {
-      // Crear un arreglo de enlaces válidos esperados
-      const expectedValidLinks = [
-        {
-          href: 'https://www.youtube.com/@auron/featured',
-          text: 'aquí',
-          file: path.resolve(markdownFilePath),
-          status: 200,
-          ok: 'ok',
-        }
-      ];
-      // Verificar que todos los enlaces válidos esperados estén presentes en el resultado
-      expectedValidLinks.forEach(expectedLink => {
-        expect(result).toContainEqual(expectedLink);
-      });
+    return mdLinks('./markdowns/markdownd2', true).then(links => {
+      expect(links).toHaveLength(3);
+
+      // Verifica que los enlaces válidos tengan el estado "ok"
+      expect(links[0].ok).toEqual('ok');
+      expect(links[1].ok).toEqual('ok');
+      expect(links[2].ok).toEqual('ok');
+    });
+  });
+
+  it('debería devolver estado "fail" para enlaces rotos', () => {
+    // Simula una respuesta con error 404 para un enlace roto
+    axios.head.mockRejectedValue({ response: { status: 404 } });
+
+    return mdLinks('./markdowns/markdownd2', true).then(links => {
+      expect(links).toHaveLength(3);
+
+      // Verifica que los enlaces rotos tengan el estado "fail"
+      expect(links[0].ok).toEqual('fail');
+      expect(links[1].ok).toEqual('fail');
+      expect(links[2].ok).toEqual('fail');
     });
   });
 });

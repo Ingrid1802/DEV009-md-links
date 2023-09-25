@@ -61,11 +61,18 @@ function extractLinksFromMarkdown(markdownContent, filePath, validate) {
 
   return Promise.all(links);
 }
+// get Markdown Files In Directory = obtener archivos Markdown en el directorio
+function getMarkdownFilesInDirectory(directoryPath) {
+  const files = fs.readdirSync(directoryPath);
+  const markdownFiles = files.filter(file => isMarkdownFile(file));
+  return markdownFiles.map(file => path.join(directoryPath, file));
+}
 
 module.exports = {
   exiteRoute,
   absoluteRoute,
   isMarkdownFile,
   extractLinksFromMarkdown,
-  validateLink
+  validateLink,
+  getMarkdownFilesInDirectory
 };

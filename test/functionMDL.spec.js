@@ -1,4 +1,4 @@
-const { exiteRoute, absoluteRoute, isMarkdownFile, validateLink, extractLinksFromMarkdown } = require('../functionMDL.js');
+const { exiteRoute, absoluteRoute, isMarkdownFile, validateLink, extractLinksFromMarkdown, getMarkdownFilesInDirectory } = require('../functionMDL.js');
 const fs = require('fs/promises');
 const path = require('path');
 const axios = require('axios');
@@ -127,6 +127,14 @@ describe('validateLink', () => {
   });
 });
 
+
+
+
+
+
+
+
+
 describe('extractLinksFromMarkdown', () => {
   it('debería extraer enlaces de un contenido Markdown sin validar', () => {
     const markdownContent = 'Canal de YouTube de un stremer que recomiendo [aquí](https://www.youtube.com/@auron/featured)';
@@ -169,3 +177,39 @@ describe('extractLinksFromMarkdown', () => {
 
 
 
+
+
+
+describe('getMarkdownFilesInDirectory', () => {
+  it('debería obtener los archivos Markdown en un directorio', () => {
+    const directoryPath = './markdowns'; // Cambia esta ruta por la ruta de tu directorio de pruebas
+
+    // Llama a la función getMarkdownFilesInDirectory con la ruta del directorio
+    const markdownFiles = getMarkdownFilesInDirectory(directoryPath);
+
+    // Asegúrate de que obtenga una matriz de rutas a archivos Markdown esperada
+    expect(markdownFiles).toEqual([
+      path.join('markdowns', 'prueba.md'),
+    ]);
+  });
+
+  it('debería manejar un directorio vacío', () => {
+    const directoryPath = './markdowns3'; // Debes crear un directorio vacío para esta prueba
+
+    // Llama a la función getMarkdownFilesInDirectory con la ruta del directorio vacío
+    const markdownFiles = getMarkdownFilesInDirectory(directoryPath);
+
+    // Asegúrate de que obtenga una matriz vacía en caso de un directorio vacío
+    expect(markdownFiles).toEqual([]);
+  });
+
+  it('debería manejar un directorio sin archivos Markdown', () => {
+    const directoryPath = './markdowns3'; // Debes crear un directorio sin archivos Markdown para esta prueba
+
+    // Llama a la función getMarkdownFilesInDirectory con la ruta del directorio sin archivos Markdown
+    const markdownFiles = getMarkdownFilesInDirectory(directoryPath);
+
+    // Asegúrate de que obtenga una matriz vacía si no hay archivos Markdown
+    expect(markdownFiles).toEqual([]);
+  });
+});

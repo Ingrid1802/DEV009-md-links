@@ -1,6 +1,14 @@
 {
-  "name": "md-links",
+  "name": "md-links-ingrid",
   "version": "0.1.0",
+  "description": "mdLinks CLI",
+  "main": "index.js",
+  "author": "Ingrid Aybar",
+  "keywords": [
+    "javascript",
+    "jest",
+    "axions"
+  ],
   "engines": {
     "node": ">=16.x"
   },
@@ -14,9 +22,29 @@
   "scripts": {
     "test": "jest --coverage"
   },
+  "bin": {
+    "mdlinks": "./cli.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ingrid1802/DEV009-md-links.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Ingrid1802/DEV009-md-links/issues"
+  },
   "dependencies": {
     "axios": "^1.5.0",
+    "chalk": "^4.1.2",
+    "cli-boxes": "^3.0.0",
+    "figlet": "^1.6.0",
     "markdown-it": "^13.0.1",
-    "marked": "^8.0.0"
-  }
+    "marked": "^8.0.1",
+    "yargs": "^17.7.2"
+  },
+  "homepage": "https://github.com/Ingrid1802/DEV009-md-links#readme",
+  "directories": {
+    "doc": "docs",
+    "test": "test"
+  },
+  "license": "ISC"
 }
