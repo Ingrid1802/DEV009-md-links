@@ -23,7 +23,7 @@
     "test": "jest --coverage"
   },
   "bin": {
-    "mdlinks": "./cli.js"
+    "md-links": "./cli.js"
   },
   "repository": {
     "type": "git",

@@ -119,7 +119,7 @@ En este cuarto hito del proyecto "Markdown Links," hemos desarrollado una Interf
 
    Ejemplo de Ejecución con --validate y --stats:
    
-   ![stats-validate-cli](readme-img/stats-validate-cli.png)
+   ![stats-validate-cli](readme-img/validate_stats.png)
 
 ### Hito 5: Buscando dentro de Subdirectorios 📂
 
@@ -151,15 +151,20 @@ Con estos pasos, hemos logrado con éxito el Hito 5 y hemos mejorado significati
 
 El proyecto se desarrolló en cinco hitos, cada uno construyendo sobre el anterior, siguiendo una metodología ágil. Utilizamos **GitHub Projects** para gestionar tareas, lo que facilitó la colaboración y el seguimiento del progreso. Esta planificación estratégica aseguró un flujo de trabajo organizado y eficiente.
 
+A continuación, se muestra una captura de pantalla de nuestro tablero de GitHub Projects y de los issues, que se utilizó para la planificación y organización del proyecto
+
 ![tablero](readme-img/tablero.png)
 
-A continuación, se muestra una captura de pantalla de nuestro tablero de GitHub Projects, que se utilizó para la planificación y organización del proyecto.
+![issues](readme-img/issues.png) 
+
+
 
 #### Diagrama de Flujo de Desarrollo
 
 Además de utilizar GitHub Projects, creamos un diagrama de flujo que representaba visualmente la evolución del proyecto. Este diagrama se actualizó con cada hito y se convirtió en una herramienta valiosa para visualizar el progreso.
 
-![diagrama](readme-img/diagrama.png)
+![diagrama](readme-img/diagrama1.png)
+![diagrama](readme-img/diagrama2.png)
 
 El diagrama de flujo comenzó con una estructura simple y se fue enriqueciendo a medida que agregamos pasos y detalles con cada hito. Esto nos ayudó a mantenernos enfocados en los objetivos y a seguir una secuencia lógica de desarrollo.
 
@@ -181,9 +186,13 @@ El paquete md-links brinda una eficaz herramienta para explorar archivos Markdow
 
 ## 6. Test Unitarios
 
-Manejo de  pruebas unitarias 
+**Manejo de  pruebas unitarias**
+
+Test de mi funcion mdLinks
 
 ![test mdlinks](readme-img/test1.png)
+Tes de las funciones que usamos en mdLinks
+
 ![test funciones](readme-img/test2.png)
 
  ***Elaborado por Ingrid Aybar - DEV009***
